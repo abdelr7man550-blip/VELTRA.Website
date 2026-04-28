@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VELTRA — ملابس الشارع</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cairo:wght@400;600;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:  #0A0A0A;
+    --green:  #B6FF00;
+    --blue:   #00A3FF;
+    --grey:   #1E1E1E;
+    --white:  #F0F0F0;
+    --dim:    #555;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Cairo', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CURSOR ── */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--green);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: width .18s, height .18s;
+    mix-blend-mode: difference;
+  }
+  .cursor.grow { width: 38px; height: 38px; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem 3rem;
+    background: rgba(10,10,10,.9);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem; letter-spacing: 6px;
+    color: var(--white);
+  }
+  .nav-logo .v { color: var(--green); }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    color: var(--dim);
+    text-decoration: none;
+    font-size: .8rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--green); }
+  .nav-cart {
+    background: var(--green);
+    color: var(--black);
+    border: none;
+    padding: .6rem 1.5rem;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 900; font-size: .82rem;
+    letter-spacing: 1px;
+    cursor: none;
+    transition: opacity .2s;
+  }
+  .nav-cart:hover { opacity: .85; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 0 3rem; padding-top: 5rem;
+    position: relative; overflow: hidden;
+  }
+  /* giant watermark */
+  .hero::before {
+    content: 'VELTRA';
+    position: absolute;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22vw;
+    color: transparent;
+    -webkit-text-stroke: 1px #191919;
+    left: 50%; top: 50%;
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+    white-space: nowrap; z-index: 0;
+    user-select: none;
+  }
+  /* green scan-line glow */
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 1px; height: 60%;
+    background: linear-gradient(to bottom, transparent, var(--green), transparent);
+    left: 50%; top: 20%;
+    opacity: .12;
+    animation: scan 6s ease-in-out infinite alternate;
+  }
+  @keyframes scan { 0%{left:20%} 100%{left:80%} }
+
+  .hero-text { position: relative; z-index: 1; }
+
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: .5rem;
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-size: .7rem; font-weight: 900; letter-spacing: 3px;
+    padding: .35rem 1rem; margin-bottom: 1.8rem;
+    text-transform: uppercase;
+  }
+  .hero-tag .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    animation: blink 1s ease infinite alternate;
+  }
+  @keyframes blink { from{opacity:1} to{opacity:.2} }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4.5rem, 8vw, 9.5rem);
+    line-height: .88; letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 .green  { color: var(--green); }
+  .hero h1 .blue   { color: var(--blue); }
+  .hero h1 .stroke {
+    color: transparent;
+    -webkit-text-stroke: 2px var(--white);
+  }
+
+  .hero-desc {
+    color: var(--dim); font-size: .95rem; line-height: 1.8;
+    max-width: 380px; margin-bottom: 2.5rem;
+  }
+  .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+  .btn-primary {
+    background: var(--green); color: var(--black);
+    border: none; padding: .95rem 2.5rem;
+    font-family: 'Cairo', sans-serif;
+    font-size: .95rem; font-weight: 900; letter-spacing: 2px;
+    cursor: none; text-transform: uppercase;
+    transition: transform .2s, opacity .2s;
+  }
+  .btn-primary:hover { opacity: .88; transform: translateY(-2px); }
+
+  .btn-outline {
+    background: transparent; color: var(--white);
+    border: 1px solid #2a2a2a;
+    padding: .95rem 2.5rem;
+    font-family: 'Cairo', sans-serif;
+    font-size: .95rem; font-weight: 700;
+    cursor: none; letter-spacing: 1px; text-transform: uppercase;
+    transition: border-color .2s;
+  }
+  .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* ── HERO VISUAL ── */
+  .hero-visual {
+    position: relative; z-index: 1;
+    display: flex; justify-content: center; align-items: center;
+    height: 80vh;
+  }
+  .hero-card {
+    position: relative;
+    width: 300px; height: 400px;
+    background: var(--grey);
+    border: 1px solid #2a2a2a;
+    overflow: hidden;
+    animation: float 4s ease-in-out infinite;
+  }
+  /* corner accent lines */
+  .hero-card::before, .hero-card::after {
+    content: '';
+    position: absolute;
+    width: 24px; height: 24px;
+    border-color: var(--green);
+    border-style: solid;
+    z-index: 2;
+  }
+  .hero-card::before { top: 10px; right: 10px; border-width: 2px 2px 0 0; }
+  .hero-card::after  { bottom: 10px; left: 10px; border-width: 0 0 2px 2px; }
+
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-16px); }
+  }
+  .hero-card-img {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(145deg,#141414,#1e1e1e,#111);
+    position: relative; overflow: hidden;
+  }
+  /* scanline texture */
+  .hero-card-img::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.02) 4px);
+    pointer-events: none;
+  }
+  .hero-card-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 1.2rem;
+    background: linear-gradient(to top, rgba(10,10,10,.95), transparent);
+    z-index: 2;
+  }
+  .hero-card-label h3 { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:3px; }
+  .hero-card-label span { color: var(--green); font-weight:900; font-size:.9rem; }
+
+  .badge-drop {
+    position: absolute; top: 1rem; right: 1rem;
+    background: var(--green); color: var(--black);
+    font-size: .65rem; font-weight: 900;
+    padding: .28rem .75rem; letter-spacing: 2px; z-index: 2;
+  }
+
+  /* floating info pills */
+  .float-pill {
+    position: absolute;
+    background: rgba(30,30,30,.95);
+    border: 1px solid #252525;
+    padding: .75rem 1.1rem;
+    font-size: .78rem; font-weight: 700;
+    animation: float 5s ease-in-out infinite;
+    backdrop-filter: blur(6px);
+  }
+  .float-pill-1 { top: 12%; right: -10px; animation-delay:1s; border-left: 2px solid var(--green); }
+  .float-pill-2 { bottom: 18%; left: -15px; animation-delay:2.5s; border-left: 2px solid var(--blue); }
+  .pill-label { color: var(--dim); font-size: .65rem; letter-spacing:1px; margin-bottom:.2rem; }
+  .pill-val   { color: var(--white); font-size: 1rem; font-weight:900; }
+
+  /* ── TICKER ── */
+  .ticker {
+    background: var(--green);
+    padding: .75rem 0; overflow: hidden; white-space: nowrap;
+  }
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 22s linear infinite;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem; letter-spacing: 5px; color: var(--black);
+  }
+  @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  /* ── SECTION ── */
+  .section { padding: 6rem 3rem; }
+  .section-header {
+    display: flex; align-items: baseline; gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem,5vw,4rem); letter-spacing: 3px;
+  }
+  .section-line { flex: 1; height: 1px; background: linear-gradient(to left, transparent, #252525); }
+  .section-tag {
+    font-size: .7rem; font-weight: 900; letter-spacing: 3px;
+    color: var(--green); text-transform: uppercase;
+  }
+
+  /* ── PRODUCT GRID ── */
+  /*
+   * ════════════════════════════════════════════════════
+   *  HOW TO ADD YOUR PRODUCTS
+   *  ─────────────────────────────────────────────────
+   *  1. Duplicate a <div class="product-card"> block
+   *  2. Replace the <img> src with your product image path
+   *  3. Update product-name, product-cat, product-price
+   *  4. Change the badge class: badge-hot | badge-lim | badge-new | (remove for none)
+   * ════════════════════════════════════════════════════
+   */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .product-card {
+    background: var(--grey);
+    border: 1px solid #222;
+    overflow: hidden;
+    position: relative;
+    transition: transform .3s, border-color .3s;
+  }
+  .product-card:hover { transform: translateY(-6px); border-color: #333; }
+
+  /* Corner accent on hover */
+  .product-card::before {
+    content: '';
+    position: absolute; top: 0; right: 0;
+    width: 0; height: 2px;
+    background: var(--green);
+    transition: width .35s ease;
+    z-index: 2;
+  }
+  .product-card:hover::before { width: 100%; }
+
+  .product-img {
+    height: 300px;
+    background: #151515;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  /* ── YOUR PRODUCT IMAGE GOES HERE ── */
+  .product-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .4s ease;
+  }
+  .product-card:hover .product-img img { transform: scale(1.04); }
+
+  /* placeholder shown when no image is set */
+  .product-img .placeholder {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: .8rem; color: #2a2a2a; width: 100%; height: 100%;
+  }
+  .placeholder svg { opacity: .35; }
+  .placeholder span { font-size: .72rem; letter-spacing: 2px; color: #2e2e2e; font-weight:700; }
+
+  .product-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.75);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .3s;
+  }
+  .product-card:hover .product-overlay { opacity: 1; }
+
+  .overlay-btn {
+    background: var(--green); color: var(--black);
+    border: none; padding: .75rem 2rem;
+    font-family: 'Cairo', sans-serif; font-weight: 900;
+    font-size: .88rem; cursor: none; letter-spacing: 1px;
+    transition: opacity .2s;
+  }
+  .overlay-btn:hover { opacity: .85; }
+
+  .product-badge {
+    position: absolute; top: 1rem; left: 1rem;
+    font-size: .62rem; font-weight: 900;
+    padding: .25rem .72rem; letter-spacing: 2px; z-index: 1;
+    text-transform: uppercase;
+  }
+  .badge-hot  { background: var(--green);  color: var(--black); }
+  .badge-lim  { background: var(--blue);   color: var(--white); }
+  .badge-new  { background: var(--white);  color: var(--black); }
+  .badge-sold { background: #2a2a2a; color: #555; }
+
+  .product-info { padding: 1.2rem 1.3rem 1.4rem; }
+  .product-cat  { color: var(--dim); font-size:.72rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:.3rem; }
+  .product-name { font-weight:900; font-size:1rem; margin-bottom:.5rem; }
+  .product-bottom { display:flex; justify-content:space-between; align-items:center; }
+  .product-price { color: var(--green); font-weight:900; font-size:1.05rem; }
+  .product-sizes { display:flex; gap:.4rem; }
+  .size-dot {
+    width: 26px; height: 26px;
+    border: 1px solid #2a2a2a;
+    display: flex; align-items:center; justify-content:center;
+    font-size: .6rem; font-weight:700; color: var(--dim);
+    cursor: none; transition: border-color .2s, color .2s;
+  }
+  .size-dot:hover { border-color: var(--green); color: var(--green); }
+
+  /* ── ABOUT ── */
+  .about-strip {
+    border-top: 1px solid #181818; border-bottom: 1px solid #181818;
+    background: var(--grey);
+    padding: 5rem 3rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5rem;
+    align-items: center;
+  }
+  .about-text h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem,5vw,5rem);
+    line-height: .92; letter-spacing: 2px; margin-bottom: 1.5rem;
+  }
+  .about-text h2 .green { color: var(--green); }
+  .about-text h2 .blue  { color: var(--blue); }
+  .about-text p { color: var(--dim); line-height: 1.8; font-size: .92rem; max-width: 420px; }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .stat-box {
+    background: var(--black);
+    border: 1px solid #1e1e1e;
+    border-top: 2px solid var(--green);
+    padding: 1.5rem;
+  }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem; line-height: 1; color: var(--white);
+  }
+  .stat-num span { color: var(--green); }
+  .stat-label { color: var(--dim); font-size: .72rem; letter-spacing: 3px; margin-top: .3rem; }
+
+  /* ── NEWSLETTER ── */
+  .newsletter {
+    padding: 6rem 3rem; text-align: center; position: relative; overflow: hidden;
+  }
+  .newsletter::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(182,255,0,.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .newsletter h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem,5vw,5.5rem);
+    letter-spacing: 3px; margin-bottom: .5rem;
+  }
+  .newsletter h2 span { color: var(--green); }
+  .newsletter p { color: var(--dim); margin-bottom: 2.2rem; font-size:.92rem; }
+  .nl-form {
+    display: flex; max-width: 480px; margin: 0 auto;
+    border: 1px solid #252525;
+  }
+  .nl-form input {
+    flex: 1; background: transparent; border: none;
+    color: var(--white); padding: 1rem 1.4rem;
+    font-family: 'Cairo', sans-serif; font-size: .9rem;
+    outline: none; direction: rtl;
+  }
+  .nl-form input::placeholder { color: #333; }
+  .nl-form button {
+    background: var(--green); color: var(--black);
+    border: none; padding: 1rem 1.8rem;
+    font-family: 'Cairo', sans-serif; font-weight:900; font-size:.9rem;
+    cursor: none; white-space: nowrap; letter-spacing:1px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--grey);
+    border-top: 1px solid #181818;
+    padding: 3.5rem 3rem;
+    display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3rem;
+  }
+  .footer-logo { font-family:'Bebas Neue',sans-serif; font-size:2.5rem; letter-spacing:6px; display:block; margin-bottom:1rem; }
+  .footer-logo .v { color: var(--green); }
+  .footer-brand p { color:#444; font-size:.82rem; line-height:1.75; max-width:260px; }
+  .footer-col h4 {
+    font-size:.68rem; letter-spacing:3px; color:var(--green);
+    text-transform:uppercase; margin-bottom:1.2rem; font-weight:900;
+  }
+  .footer-col ul { list-style:none; }
+  .footer-col li { margin-bottom:.6rem; }
+  .footer-col a { color:#444; text-decoration:none; font-size:.82rem; transition:color .2s; }
+  .footer-col a:hover { color: var(--white); }
+
+  .footer-bottom {
+    background: var(--black);
+    padding: 1rem 3rem;
+    display: flex; justify-content:space-between; align-items:center;
+    border-top: 1px solid #141414;
+  }
+  .footer-bottom p { color:#2a2a2a; font-size:.75rem; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(28px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .hero-tag  { animation: fadeUp .6s ease .1s both; }
+  .hero h1   { animation: fadeUp .7s ease .25s both; }
+  .hero-desc { animation: fadeUp .7s ease .4s both; }
+  .hero-btns { animation: fadeUp .7s ease .55s both; }
+  .hero-visual { animation: fadeUp .9s ease .3s both; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 2rem 1.5rem; padding-top: 6rem; }
+    .hero-visual { height: auto; margin-top: 2rem; }
+    .hero-card { width: 240px; height: 300px; }
+    .about-strip { grid-template-columns: 1fr; padding: 4rem 1.5rem; gap: 3rem; }
+    footer { grid-template-columns: 1fr; padding: 2.5rem 1.5rem; }
+    .section { padding: 4rem 1.5rem; }
+    .float-pill-1, .float-pill-2 { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<!-- ═══════ NAV ═══════ -->
+<nav>
+  <div class="nav-logo"><span class="v">V</span>ELTRA</div>
+  <ul class="nav-links">
+    <li><a href="#products">المجموعة</a></li>
+    <li><a href="#about">عن VELTRA</a></li>
+    <li><a href="#newsletter">تواصل</a></li>
+  </ul>
+  <button class="nav-cart" id="cartBtn">🛒 السلة (0)</button>
+</nav>
+
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="hero-tag">
+      <span class="dot"></span>
+      NEW DROP — 2026
+    </div>
+    <h1>
+      <span class="green">VELTRA</span>
+    </h1>
+    <p class="hero-desc">
+      VELTRA مش مجرد ملابس — ده هوية. كل قطعة limited، كل drop مختلف. لو عارف، عارف.
+    </p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">تسوق دلوقتي</button>
+      <button class="btn-outline" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">اعرف أكتر</button>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-card">
+      <div class="hero-card-img">
+        <!-- ── HERO PRODUCT IMAGE: replace src with your featured item ── -->
+        <!-- <img src="YOUR_IMAGE.jpg" style="width:100%;height:100%;object-fit:cover"> -->
+        <svg width="150" height="130" viewBox="0 0 160 140" fill="none">
+          <path d="M30 20 L0 50 L30 65 L30 130 L130 130 L130 65 L160 50 L130 20 L105 40 C100 10 60 10 55 40 Z" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1.5"/>
+          <text x="35" y="92" font-family="Bebas Neue, sans-serif" font-size="36" fill="#B6FF00" letter-spacing="3">VELTRA</text>
+          <line x1="35" y1="100" x2="125" y2="100" stroke="#B6FF00" stroke-width="1" opacity="0.3"/>
+          <text x="50" y="115" font-family="Bebas Neue, sans-serif" font-size="12" fill="#2a2a2a" letter-spacing="6">STREETWEAR</text>
+        </svg>
+      </div>
+      <div class="hero-card-label">
+        <h3>VELTRA — DROP 01</h3>
+        <span>LIMITED EDITION ⚡</span>
+      </div>
+      <div class="badge-drop">NEW DROP</div>
+    </div>
+
+    <div class="float-pill float-pill-1">
+      <div class="pill-label">SOLD TODAY</div>
+      <div class="pill-val">🔥 38 قطعة</div>
+    </div>
+    <div class="float-pill float-pill-2">
+      <div class="pill-label">المتبقي</div>
+      <div class="pill-val">⚡ 9 فقط</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ TICKER ═══════ -->
+<div class="ticker">
+  <div class="ticker-inner">
+    FREE SHIPPING +500 EGP &nbsp;✦&nbsp; LIMITED DROPS ONLY &nbsp;✦&nbsp; VELTRA STREETWEAR &nbsp;✦&nbsp; MADE IN EGYPT &nbsp;✦&nbsp; شحن مجاني فوق ٥٠٠ &nbsp;✦&nbsp; كولكشن محدودة &nbsp;✦&nbsp; FREE SHIPPING +500 EGP &nbsp;✦&nbsp; LIMITED DROPS ONLY &nbsp;✦&nbsp; VELTRA STREETWEAR &nbsp;✦&nbsp; MADE IN EGYPT &nbsp;✦&nbsp; شحن مجاني فوق ٥٠٠ &nbsp;✦&nbsp; كولكشن محدودة &nbsp;✦&nbsp;
+  </div>
+</div>
+
+<!-- ═══════ PRODUCTS ═══════ -->
+<section class="section" id="products">
+  <div class="section-header">
+    <h2 class="section-title">المجموعة</h2>
+    <div class="section-line"></div>
+    <span class="section-tag">DROP 01</span>
+  </div>
+
+  <div class="products-grid">
+
+    <!--
+    ══════════════════════════════════════════════════════════
+      PRODUCT TEMPLATE — copy & paste this block to add items
+      ──────────────────────────────────────────────────────
+      • Replace YOUR_IMAGE.jpg with your real image path
+      • Change product-name, product-cat, product-price
+      • Badge classes: badge-hot | badge-lim | badge-new | badge-sold
+      • Remove <div class="product-badge"> line if no badge needed
+    ══════════════════════════════════════════════════════════
+    -->
+
+    <!-- ── PRODUCT 1 ── -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="YOUR_IMAGE_1.jpg" alt="اسم المنتج" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+        <div class="placeholder" style="display:none">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+            <rect x="2" y="2" width="56" height="56" rx="2" stroke="#2a2a2a" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <path d="M20 30 L30 20 L40 30" stroke="#2a2a2a" stroke-width="1.5"/>
+            <circle cx="30" cy="35" r="5" stroke="#2a2a2a" stroke-width="1.5"/>
+          </svg>
+          <span>أضف صورة المنتج</span>
+        </div>
+        <div class="product-overlay"><button class="overlay-btn">أضف للسلة</button></div>
+      </div>
+      <div class="product-badge badge-hot">HOT</div>
+      <div class="product-info">
+        <div class="product-cat">Oversized Tee</div>
+        <div class="product-name">اسم المنتج هنا</div>
+        <div class="product-bottom">
+          <div class="product-price">السعر هنا</div>
+          <div class="product-sizes">
+            <div class="size-dot">S</div>
+            <div class="size-dot">M</div>
+            <div class="size-dot">L</div>
+            <div class="size-dot">XL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRODUCT 2 ── -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="YOUR_IMAGE_2.jpg" alt="اسم المنتج" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+        <div class="placeholder" style="display:none">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+            <rect x="2" y="2" width="56" height="56" rx="2" stroke="#2a2a2a" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <path d="M20 30 L30 20 L40 30" stroke="#2a2a2a" stroke-width="1.5"/>
+            <circle cx="30" cy="35" r="5" stroke="#2a2a2a" stroke-width="1.5"/>
+          </svg>
+          <span>أضف صورة المنتج</span>
+        </div>
+        <div class="product-overlay"><button class="overlay-btn">أضف للسلة</button></div>
+      </div>
+      <div class="product-badge badge-lim">LIMITED</div>
+      <div class="product-info">
+        <div class="product-cat">Hoodie</div>
+        <div class="product-name">اسم المنتج هنا</div>
+        <div class="product-bottom">
+          <div class="product-price">السعر هنا</div>
+          <div class="product-sizes">
+            <div class="size-dot">S</div>
+            <div class="size-dot">M</div>
+            <div class="size-dot">L</div>
+            <div class="size-dot">XL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRODUCT 3 ── -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="YOUR_IMAGE_3.jpg" alt="اسم المنتج" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+        <div class="placeholder" style="display:none">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+            <rect x="2" y="2" width="56" height="56" rx="2" stroke="#2a2a2a" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <path d="M20 30 L30 20 L40 30" stroke="#2a2a2a" stroke-width="1.5"/>
+            <circle cx="30" cy="35" r="5" stroke="#2a2a2a" stroke-width="1.5"/>
+          </svg>
+          <span>أضف صورة المنتج</span>
+        </div>
+        <div class="product-overlay"><button class="overlay-btn">أضف للسلة</button></div>
+      </div>
+      <div class="product-badge badge-new">NEW</div>
+      <div class="product-info">
+        <div class="product-cat">Cargo Pants</div>
+        <div class="product-name">اسم المنتج هنا</div>
+        <div class="product-bottom">
+          <div class="product-price">السعر هنا</div>
+          <div class="product-sizes">
+            <div class="size-dot">S</div>
+            <div class="size-dot">M</div>
+            <div class="size-dot">L</div>
+            <div class="size-dot">XL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRODUCT 4 ── -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="YOUR_IMAGE_4.jpg" alt="اسم المنتج" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+        <div class="placeholder" style="display:none">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+            <rect x="2" y="2" width="56" height="56" rx="2" stroke="#2a2a2a" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <path d="M20 30 L30 20 L40 30" stroke="#2a2a2a" stroke-width="1.5"/>
+            <circle cx="30" cy="35" r="5" stroke="#2a2a2a" stroke-width="1.5"/>
+          </svg>
+          <span>أضف صورة المنتج</span>
+        </div>
+        <div class="product-overlay"><button class="overlay-btn">أضف للسلة</button></div>
+      </div>
+      <!-- no badge -->
+      <div class="product-info">
+        <div class="product-cat">Graphic Tee</div>
+        <div class="product-name">اسم المنتج هنا</div>
+        <div class="product-bottom">
+          <div class="product-price">السعر هنا</div>
+          <div class="product-sizes">
+            <div class="size-dot">S</div>
+            <div class="size-dot">M</div>
+            <div class="size-dot">L</div>
+            <div class="size-dot">XL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /products-grid -->
+</section>
+
+<!-- ═══════ ABOUT ═══════ -->
+<div class="about-strip" id="about">
+  <div class="about-text">
+    <h2>
+      نحن<br>
+      <span class="green">VELTRA</span><br>
+      <span class="blue">الفرق.</span>
+    </h2>
+    <p>
+      VELTRA وُلد من الشارع وللشارع. مش براند تاني، ده موقف. كل قطعة بتتعمل بـ precision وبتتباع بأعداد محدودة — عشان اللي بيلبسها يبقى من الـ few.
+    </p>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-num">2<span>K+</span></div>
+      <div class="stat-label">CUSTOMERS</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">10<span>+</span></div>
+      <div class="stat-label">DROPS</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">100<span>%</span></div>
+      <div class="stat-label">LOCAL</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">4<span>.9</span></div>
+      <div class="stat-label">RATING ★</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ NEWSLETTER ═══════ -->
+<section class="newsletter" id="newsletter">
+  <h2>كن أول<br><span>المبشرين</span></h2>
+  <p>اشترك واعرف عن الـ drops الجديدة قبل الكل</p>
+  <div class="nl-form">
+    <input type="email" id="nlInput" placeholder="إيميلك هنا..." />
+    <button id="nlBtn">اشترك</button>
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer>
+  <div class="footer-brand">
+    <span class="footer-logo"><span class="v">V</span>ELTRA</span>
+    <p>ملابس الشارع المحدودة. صنع في مصر بـ passion حقيقي. كل drop مختلف عن اللي قبله.</p>
+  </div>
+  <div class="footer-col">
+    <h4>المتجر</h4>
+    <ul>
+      <li><a href="#products">المجموعة الجديدة</a></li>
+      <li><a href="#products">تيشرتات</a></li>
+      <li><a href="#products">هوديز</a></li>
+      <li><a href="#products">كارجو</a></li>
+    </ul>
+  </div>
+  <div class="footer-col">
+    <h4>تواصل</h4>
+    <ul>
+      <li><a href="#">Instagram</a></li>
+      <li><a href="#">TikTok</a></li>
+      <li><a href="#">WhatsApp</a></li>
+      <li><a href="#">سياسة الإرجاع</a></li>
+    </ul>
+  </div>
+</footer>
+<div class="footer-bottom">
+  <p>© 2026 VELTRA. جميع الحقوق محفوظة.</p>
+  <p>MADE IN EGYPT 🇪🇬</p>
+</div>
+
+<script>
+  /* ── Cursor ── */
+  const cur = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px';
+    cur.style.top  = e.clientY + 'px';
+  });
+  document.querySelectorAll('button, a, .product-card, .size-dot').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('grow'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('grow'));
+  });
+
+  /* ── Cart ── */
+  const cartBtn = document.getElementById('cartBtn');
+  let cartCount = 0;
+  document.querySelectorAll('.overlay-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      cartCount++;
+      cartBtn.textContent = `🛒 السلة (${cartCount})`;
+      const orig = btn.textContent;
+      btn.textContent = '✓ أُضيف!';
+      btn.style.background = '#00A3FF';
+      btn.style.color = '#fff';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 1600);
+    });
+  });
+
+  /* ── Size selector ── */
+  document.querySelectorAll('.product-sizes').forEach(group => {
+    group.querySelectorAll('.size-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        group.querySelectorAll('.size-dot').forEach(d => {
+          d.style.borderColor = ''; d.style.color = '';
+        });
+        dot.style.borderColor = '#B6FF00';
+        dot.style.color = '#B6FF00';
+      });
+    });
+  });
+
+  /* ── Newsletter ── */
+  document.getElementById('nlBtn').addEventListener('click', function() {
+    const inp = document.getElementById('nlInput');
+    if (inp.value.includes('@')) {
+      this.textContent = '✓ تم!';
+      this.style.background = '#00A3FF';
+      inp.value = '';
+      setTimeout(() => { this.textContent = 'اشترك'; this.style.background = ''; }, 3000);
+    } else {
+      inp.style.borderBottom = '1px solid #ff4444';
+      setTimeout(() => inp.style.borderBottom = '', 2000);
+    }
+  });
+</script>
+</body>
+</html>
